@@ -308,6 +308,98 @@ div[role="radiogroup"] label[data-checked="true"] {
   padding: .45rem .65rem;
 }
 
+
+/* RESULT CARDS */
+.pt-result {
+  margin: 1rem 0 1.15rem;
+  padding: 1.15rem 1.2rem 1.05rem;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 22px;
+  color: #fff;
+  box-shadow: 0 18px 44px rgba(0,0,0,.20);
+  animation: ptFadeUp .22s ease-out;
+}
+
+.pt-result-header {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+.pt-result-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.15);
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
+.pt-result .kicker {
+  margin-bottom: .18rem;
+  color: rgba(255,255,255,.72);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.pt-result .big {
+  color: #fff;
+  font-size: 1.34rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.pt-result .small {
+  margin: .85rem 0 0;
+  color: rgba(255,255,255,.86);
+  font-size: .92rem;
+  line-height: 1.5;
+}
+
+.pt-fresh {
+  background: radial-gradient(circle at 90% 8%, rgba(83,224,143,.20), transparent 32%),
+              linear-gradient(145deg, #18563a 0%, #0f3827 100%);
+  border-color: rgba(109,228,157,.34);
+  box-shadow: 0 18px 44px rgba(9,55,32,.28), 0 0 34px rgba(75,207,128,.11);
+}
+
+.pt-transition {
+  background: radial-gradient(circle at 90% 8%, rgba(255,193,79,.22), transparent 32%),
+              linear-gradient(145deg, #80551d 0%, #52350f 100%);
+  border-color: rgba(255,205,110,.34);
+  box-shadow: 0 18px 44px rgba(72,48,12,.28), 0 0 34px rgba(244,173,55,.11);
+}
+
+.pt-spoiled {
+  background: radial-gradient(circle at 90% 8%, rgba(255,105,117,.22), transparent 32%),
+              linear-gradient(145deg, #7a2731 0%, #4c1720 100%);
+  border-color: rgba(255,139,149,.33);
+  box-shadow: 0 18px 44px rgba(75,22,29,.28), 0 0 34px rgba(239,91,103,.11);
+}
+
+.pt-missing {
+  background: radial-gradient(circle at 90% 8%, rgba(210,132,237,.20), transparent 32%),
+              linear-gradient(145deg, #583967 0%, #35243f 100%);
+  border-color: rgba(222,173,240,.29);
+  box-shadow: 0 18px 44px rgba(47,30,57,.26), 0 0 34px rgba(184,108,211,.10);
+}
+
+.pt-error {
+  background: radial-gradient(circle at 90% 8%, rgba(255,105,117,.20), transparent 32%),
+              linear-gradient(145deg, #682535 0%, #411722 100%);
+  border-color: rgba(244,128,139,.30);
+}
+
+@keyframes ptFadeUp {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .pt-footer {
   margin-top: 1.8rem;
   padding-top: .9rem;
