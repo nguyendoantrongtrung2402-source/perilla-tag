@@ -411,17 +411,126 @@ div[role="radiogroup"] label[data-checked="true"] {
 }
 
 @media (max-width: 760px) {
-  .block-container { padding-left: .9rem; padding-right: .9rem; padding-top: .65rem; }
-  .pt-hero { min-height: 330px; padding: 28px 22px 26px; border-radius: 24px; }
-  .pt-hero-copy { width: 69%; }
-  .pt-title { font-size: clamp(2.15rem, 10.5vw, 3.45rem); }
-  .pt-slogan { font-size: 1rem; }
-  .pt-sub { font-size: .86rem; max-width: 30ch; }
-  .pt-hero-art { width: 43%; right: -8px; opacity: .88; }
-  .pt-hero-art img { width: 132%; opacity: .13; }
+  /* Mobile-first: mở app là tới thao tác chụp/chọn ảnh gần như ngay lập tức. */
+  .block-container {
+    padding-left: .68rem;
+    padding-right: .68rem;
+    padding-top: .35rem;
+    padding-bottom: 1.7rem;
+  }
+
+  .pt-hero {
+    min-height: 0;
+    margin-bottom: .58rem;
+    padding: 13px 14px 12px;
+    border-radius: 18px;
+    box-shadow: 0 14px 34px rgba(0,0,0,.22);
+  }
+  .pt-hero::before,
+  .pt-hero::after { display: none; }
+
+  .pt-hero-copy { width: 82%; max-width: none; }
+  .pt-eyebrow {
+    margin-bottom: .28rem;
+    font-size: .56rem;
+    letter-spacing: .22em;
+  }
+  .pt-title {
+    margin-bottom: .30rem;
+    font-size: clamp(1.48rem, 7.2vw, 1.95rem);
+    line-height: .98;
+    letter-spacing: -.035em;
+  }
+  .pt-slogan {
+    margin-bottom: 0;
+    font-size: .80rem;
+    line-height: 1.25;
+  }
+  .pt-sub { display: none; }
+
+  .pt-hero-art {
+    width: 29%;
+    height: 105%;
+    right: -2px;
+    top: -2px;
+    opacity: .76;
+  }
+  .pt-hero-art img { width: 142%; opacity: .11; }
   .pt-hero-dots { display: none; }
-  [data-testid="stAppViewContainer"]::before { width: 210px; height: 310px; right: -110px; top: 290px; }
-  [data-testid="stAppViewContainer"]::after { width: 210px; height: 300px; left: -120px; bottom: -60px; }
+
+  /* Hero đã đủ hướng dẫn trên điện thoại; bỏ block giới thiệu thứ hai để giảm cuộn. */
+  .pt-section { display: none; }
+
+  div[role="radiogroup"] {
+    width: 100%;
+    gap: .42rem;
+    margin-top: 0;
+    margin-bottom: .18rem;
+  }
+  div[role="radiogroup"] label {
+    flex: 1 1 0;
+    min-height: 44px;
+    padding: .50rem .58rem;
+    border-radius: 13px;
+    font-size: .86rem;
+  }
+
+  .pt-note {
+    margin: .35rem 0 .42rem;
+    font-size: .75rem;
+    line-height: 1.36;
+  }
+
+  [data-testid="stFileUploader"] { border-radius: 14px; }
+  [data-testid="stFileUploaderDropzone"] {
+    padding-top: .55rem;
+    padding-bottom: .55rem;
+    min-height: 72px;
+  }
+
+  [data-testid="stExpander"] { border-radius: 14px; }
+  [data-testid="stMetric"] {
+    border-radius: 12px;
+    padding: .34rem .45rem;
+  }
+
+  .pt-result {
+    margin: .58rem 0 .72rem;
+    padding: .85rem .88rem .82rem;
+    border-radius: 17px;
+  }
+  .pt-result-header { gap: .65rem; }
+  .pt-result-icon {
+    width: 37px;
+    height: 37px;
+    flex-basis: 37px;
+    border-radius: 11px;
+    font-size: 1.18rem;
+  }
+  .pt-result .kicker { font-size: .61rem; }
+  .pt-result .big { font-size: 1.05rem; }
+  .pt-result .small {
+    margin-top: .58rem;
+    font-size: .80rem;
+    line-height: 1.42;
+  }
+
+  .pt-footer {
+    margin-top: 1.05rem;
+    padding-top: .65rem;
+    font-size: .68rem;
+  }
+
+  [data-testid="stAppViewContainer"]::before { display: none; }
+  [data-testid="stAppViewContainer"]::after { opacity: .025; }
+}
+
+@media (max-width: 390px) {
+  .block-container { padding-left: .52rem; padding-right: .52rem; }
+  .pt-hero { padding: 11px 12px 10px; border-radius: 16px; }
+  .pt-title { font-size: 1.40rem; }
+  .pt-slogan { font-size: .74rem; }
+  div[role="radiogroup"] label { font-size: .79rem; padding-left: .35rem; padding-right: .35rem; }
 }
 </style>
 
@@ -679,7 +788,45 @@ CAMERA_CSS = """
 }
 
 @media (max-width: 640px) {
-  .pt-stage { border-radius: 21px; }
+  .pt-cam-topline { display: none; }
+  .pt-stage { border-radius: 18px; }
+  .pt-guide::before { border-radius: 11px; }
+  .pt-guide-label {
+    bottom: -27px;
+    padding: 4px 7px;
+    font-size: 10px;
+  }
+  .pt-cam-status {
+    min-height: 16px;
+    margin: 7px 2px 1px;
+    font-size: 10.5px;
+  }
+  .pt-cam-actions {
+    gap: 15px;
+    margin-top: 4px;
+  }
+  .pt-start,
+  .pt-copy {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 11px;
+    font-size: 12px;
+  }
+  .pt-shot {
+    width: 62px;
+    height: 62px;
+    padding: 4px;
+  }
+  .pt-shot span {
+    width: 44px;
+    height: 44px;
+  }
+  .pt-browser-warning {
+    margin-bottom: 7px;
+    padding: 8px 9px;
+    border-radius: 11px;
+    font-size: 10.5px;
+  }
 }
 """
 
@@ -952,13 +1099,12 @@ if mode == "📷 Chụp thẻ":
         '<div class="pt-note">Mẹo: giữ điện thoại ổn định, tránh bóng đổ và đặt toàn bộ vùng màu của thẻ vào khung giữa.</div>',
         unsafe_allow_html=True,
     )
-    st.write("")
     camera_result = camera_component(
         default={"image_data_url": ""},
         on_image_data_url_change=lambda: None,
         key="perilla_camera",
         width="stretch",
-        height=610,
+        height="content",
     )
     camera_data = getattr(camera_result, "image_data_url", "") or ""
     if camera_data:
@@ -982,7 +1128,7 @@ else:
     if uploaded is not None:
         try:
             uploaded_image = normalize_image(Image.open(uploaded))
-            st.image(uploaded_image, caption="Ảnh đã chọn", use_container_width=True)
+            # Không hiện ảnh lớn trước kết quả trên mobile; ảnh + ROI vẫn có trong "Xem chi tiết kỹ thuật".
             process_and_render(uploaded_image, "Ảnh đã chọn")
             if st.button("Phân tích ảnh khác", use_container_width=True):
                 st.session_state.uploader_version += 1
