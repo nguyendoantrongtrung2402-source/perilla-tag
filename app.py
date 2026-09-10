@@ -209,7 +209,7 @@ html, body { background: var(--pt-bg); }
   width: 118%;
   max-width: none;
   height: auto;
-  object-fit: contain;
+  object-fit: cover;
   opacity: .16;
   filter: invert(1) drop-shadow(0 0 16px rgba(190,130,211,.10));
   mix-blend-mode: screen;
@@ -448,31 +448,39 @@ div[role="radiogroup"] label[data-checked="true"] {
   }
   .pt-sub { display: none; }
 
-  .pt-hero-art {
-    width: 29%;
-    height: 105%;
-    right: -2px;
-    top: -2px;
-    opacity: .76;
-  }
-  .pt-hero-art img { width: 142%; opacity: .11; }
+  /* Mobile: bỏ ảnh lá để tránh clipping/reflow và giữ hero sạch, ổn định. */
+  .pt-hero-art,
   .pt-hero-dots { display: none; }
+  .pt-hero-copy { width: 100%; }
 
   /* Hero đã đủ hướng dẫn trên điện thoại; bỏ block giới thiệu thứ hai để giảm cuộn. */
   .pt-section { display: none; }
 
   div[role="radiogroup"] {
     width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: .42rem;
     margin-top: 0;
     margin-bottom: .18rem;
   }
   div[role="radiogroup"] label {
-    flex: 1 1 0;
+    width: 100% !important;
+    min-width: 0 !important;
     min-height: 44px;
-    padding: .50rem .58rem;
+    padding: .50rem .42rem;
     border-radius: 13px;
-    font-size: .86rem;
+    font-size: .83rem;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  div[role="radiogroup"] label > div:first-child {
+    flex: 0 0 auto;
+  }
+  div[role="radiogroup"] label p {
+    white-space: nowrap !important;
+    margin: 0 !important;
   }
 
   .pt-note {
@@ -530,7 +538,7 @@ div[role="radiogroup"] label[data-checked="true"] {
   .pt-hero { padding: 11px 12px 10px; border-radius: 16px; }
   .pt-title { font-size: 1.40rem; }
   .pt-slogan { font-size: .74rem; }
-  div[role="radiogroup"] label { font-size: .79rem; padding-left: .35rem; padding-right: .35rem; }
+  div[role="radiogroup"] label { font-size: .74rem; padding-left: .22rem; padding-right: .22rem; }
 }
 </style>
 
@@ -637,7 +645,7 @@ CAMERA_CSS = """
   width: 100%;
   position: relative;
   overflow: hidden;
-  aspect-ratio: 4/3;
+  aspect-ratio: 4 / 3;
   border: 1px solid rgba(223, 194, 236, .16);
   border-radius: 25px;
   background: #050407;
@@ -789,7 +797,11 @@ CAMERA_CSS = """
 
 @media (max-width: 640px) {
   .pt-cam-topline { display: none; }
-  .pt-stage { border-radius: 18px; }
+  .pt-stage {
+    border-radius: 18px;
+    aspect-ratio: 4 / 3 !important;
+    max-height: none;
+  }
   .pt-guide::before { border-radius: 11px; }
   .pt-guide-label {
     bottom: -27px;
@@ -889,6 +901,7 @@ export default function({ parentElement, setStateValue }) {
         audio: false,
         video: {
           facingMode: { ideal: 'environment' },
+          aspectRatio: { ideal: 1.3333333333 },
           width: { ideal: 1280, max: 1920 },
           height: { ideal: 960, max: 1440 }
         }
@@ -896,9 +909,8 @@ export default function({ parentElement, setStateValue }) {
       stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
       await video.play();
-      if (video.videoWidth && video.videoHeight) {
-        stage.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
-      }
+      // Giữ khung camera cố định 4:3 để giao diện không phình cao sau khi bật camera.
+      // Camera ưu tiên tỉ lệ 4:3; video dùng object-fit: cover để không đổi chiều cao UI.
       idle.style.display = 'none';
       shotBtn.disabled = false;
       status.textContent = 'Camera đã sẵn sàng. Đặt thẻ vào giữa khung rồi chụp.';
