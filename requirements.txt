@@ -1,5 +1,0 @@
-streamlit==1.63.0
-numpy
-Pillow
-joblib
-scikit-learn
