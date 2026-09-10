@@ -907,6 +907,66 @@ else:
             unsafe_allow_html=True,
         )
 
+# ------------------------------------------------------------
+# TEST GIAO DIỆN — chỉ xem màu/card, không phải kết quả phân tích
+# ------------------------------------------------------------
+with st.expander("Test giao diện", expanded=False):
+    st.markdown(
+        "**TEST GIAO DIỆN — KHÔNG PHẢI KẾT QUẢ PHÂN TÍCH**"
+    )
+    st.caption(
+        "Các nút dưới đây chỉ dùng để xem thử màu và bố cục card. "
+        "Không chạy camera, không đọc ảnh, không gọi model.joblib và không tạo dự đoán."
+    )
+
+    if "ui_test_card" not in st.session_state:
+        st.session_state.ui_test_card = None
+
+    if st.button("CÒN TƯƠI", key="ui_test_fresh", use_container_width=True):
+        st.session_state.ui_test_card = "fresh"
+    if st.button(
+        "CHUYỂN TIẾP / CẦN DÙNG SỚM",
+        key="ui_test_transition",
+        use_container_width=True,
+    ):
+        st.session_state.ui_test_card = "transition"
+    if st.button(
+        "CÓ DẤU HIỆU HƯ HỎNG",
+        key="ui_test_spoiled",
+        use_container_width=True,
+    ):
+        st.session_state.ui_test_card = "spoiled"
+    if st.button(
+        "CHƯA CÓ MÔ HÌNH",
+        key="ui_test_missing",
+        use_container_width=True,
+    ):
+        st.session_state.ui_test_card = "missing"
+
+    test_cards = {
+        "fresh": (
+            "CÒN TƯƠI",
+            "Card mẫu để kiểm tra giao diện trạng thái CÒN TƯƠI.",
+        ),
+        "transition": (
+            "CHUYỂN TIẾP / CẦN DÙNG SỚM",
+            "Card mẫu để kiểm tra giao diện trạng thái CHUYỂN TIẾP / CẦN DÙNG SỚM.",
+        ),
+        "spoiled": (
+            "CÓ DẤU HIỆU HƯ HỎNG",
+            "Card mẫu để kiểm tra giao diện trạng thái CÓ DẤU HIỆU HƯ HỎNG.",
+        ),
+        "missing": (
+            "CHƯA CÓ MÔ HÌNH THỰC NGHIỆM",
+            "Card mẫu để kiểm tra giao diện khi chưa có model.joblib.",
+        ),
+    }
+
+    selected_test_card = st.session_state.ui_test_card
+    if selected_test_card in test_cards:
+        test_title, test_message = test_cards[selected_test_card]
+        show_result_card(selected_test_card, test_title, test_message)
+
 st.markdown(
     """
 <div class="pt-footer">
