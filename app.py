@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import io
 
 import streamlit as st
@@ -227,7 +228,7 @@ div[role="radiogroup"] label {
   background: linear-gradient(145deg, rgba(44,91,58,.82), rgba(22,53,34,.88));
 }
 
-/* Chỉ là màu giao diện, không phải màu chuẩn thực nghiệm của thẻ. */
+/* Đây chỉ là màu GIAO DIỆN cho trạng thái trung gian, không phải màu chuẩn của thẻ. */
 .pt-transition {
   color: #fff4dc;
   background: linear-gradient(145deg, rgba(116,82,34,.84), rgba(73,51,24,.90));
@@ -345,20 +346,12 @@ CAMERA_HTML = """
 
   <div class="pt-cam-actions">
     <button class="pt-start" type="button">Bật camera</button>
-    <button
-      class="pt-shot"
-      type="button"
-      disabled
-      aria-label="Chụp thẻ"
-      title="Chụp thẻ"
-    >
+    <button class="pt-shot" type="button" disabled aria-label="Chụp thẻ" title="Chụp thẻ">
       <span></span>
     </button>
   </div>
 
-  <button class="pt-copy" type="button" hidden>
-    Sao chép liên kết
-  </button>
+  <button class="pt-copy" type="button" hidden>Sao chép liên kết</button>
 </div>
 """
 
@@ -370,9 +363,7 @@ html, body {
   background: transparent !important;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 .pt-camera-shell {
   width: 100%;
@@ -380,18 +371,9 @@ html, body {
   overflow: hidden;
   border: 1px solid rgba(226,198,239,.14);
   border-radius: 20px;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(30,20,37,.96),
-      rgba(13,9,17,.99)
-    );
+  background: linear-gradient(145deg, rgba(30,20,37,.96), rgba(13,9,17,.99));
   color: #f7f2f9;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .pt-cam-topline {
@@ -419,12 +401,7 @@ html, body {
   margin: 0 auto;
   overflow: hidden;
   border-radius: 17px;
-  background:
-    radial-gradient(
-      circle at center,
-      #23172b,
-      #070508
-    );
+  background: radial-gradient(circle at center, #23172b, #070508);
   border: 1px solid rgba(255,255,255,.07);
 }
 
@@ -455,7 +432,7 @@ html, body {
   color: #bf83d3;
 }
 
-/* ROI chỉ hiện sau khi camera thật đã mở. */
+/* ROI chỉ hiện sau khi camera thật đã mở và biết đúng tỉ lệ video. */
 .pt-guide {
   position: absolute;
   left: 35%;
@@ -473,9 +450,7 @@ html, body {
   border: 2px solid rgba(226,174,246,.94);
   border-radius: 13px;
   background: rgba(183,94,218,.035);
-  box-shadow:
-    0 0 0 999px rgba(0,0,0,.17),
-    0 0 18px rgba(193,112,224,.18);
+  box-shadow: 0 0 0 999px rgba(0,0,0,.17), 0 0 18px rgba(193,112,224,.18);
 }
 
 .pt-guide-label {
@@ -501,33 +476,10 @@ html, body {
   border-style: solid;
 }
 
-.tl {
-  left: -1px;
-  top: -1px;
-  border-width: 3px 0 0 3px;
-  border-radius: 8px 0 0 0;
-}
-
-.tr {
-  right: -1px;
-  top: -1px;
-  border-width: 3px 3px 0 0;
-  border-radius: 0 8px 0 0;
-}
-
-.bl {
-  left: -1px;
-  bottom: -1px;
-  border-width: 0 0 3px 3px;
-  border-radius: 0 0 0 8px;
-}
-
-.br {
-  right: -1px;
-  bottom: -1px;
-  border-width: 0 3px 3px 0;
-  border-radius: 0 0 8px 0;
-}
+.tl { left: -1px; top: -1px; border-width: 3px 0 0 3px; border-radius: 8px 0 0 0; }
+.tr { right: -1px; top: -1px; border-width: 3px 3px 0 0; border-radius: 0 8px 0 0; }
+.bl { left: -1px; bottom: -1px; border-width: 0 0 3px 3px; border-radius: 0 0 0 8px; }
+.br { right: -1px; bottom: -1px; border-width: 0 3px 3px 0; border-radius: 0 0 8px 0; }
 
 .pt-cam-status {
   min-height: 17px;
@@ -550,12 +502,7 @@ html, body {
   border: 1px solid rgba(222,190,236,.20);
   border-radius: 12px;
   padding: 8px 12px;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(110,62,130,.94),
-      rgba(78,43,93,.98)
-    );
+  background: linear-gradient(145deg, rgba(110,62,130,.94), rgba(78,43,93,.98));
   color: #fff;
   font-weight: 780;
   cursor: pointer;
@@ -582,14 +529,8 @@ html, body {
   transition: transform .12s ease;
 }
 
-.pt-shot:not(:disabled):active span {
-  transform: scale(.88);
-}
-
-.pt-shot:disabled {
-  opacity: .28;
-  cursor: not-allowed;
-}
+.pt-shot:not(:disabled):active span { transform: scale(.88); }
+.pt-shot:disabled { opacity: .28; cursor: not-allowed; }
 
 .pt-browser-warning {
   margin: 0 0 8px;
@@ -607,7 +548,7 @@ html, body {
   font-size: 11px;
 }
 
-/* hidden phải thật sự ẩn */
+/* Fix: hidden phải thật sự biến mất. */
 .pt-copy[hidden],
 .pt-browser-warning[hidden],
 .pt-guide[hidden] {
@@ -620,208 +561,87 @@ export default function({ parentElement, setStateValue }) {
   if (parentElement.__perillaReady) return;
   parentElement.__perillaReady = true;
 
-  const video =
-    parentElement.querySelector('.pt-video');
-
-  const canvas =
-    parentElement.querySelector('.pt-canvas');
-
-  const stage =
-    parentElement.querySelector('.pt-stage');
-
-  const guide =
-    parentElement.querySelector('.pt-guide');
-
-  const idle =
-    parentElement.querySelector('.pt-idle');
-
-  const startBtn =
-    parentElement.querySelector('.pt-start');
-
-  const shotBtn =
-    parentElement.querySelector('.pt-shot');
-
-  const status =
-    parentElement.querySelector('.pt-cam-status');
-
-  const warning =
-    parentElement.querySelector('.pt-browser-warning');
-
-  const copyBtn =
-    parentElement.querySelector('.pt-copy');
+  const video = parentElement.querySelector('.pt-video');
+  const canvas = parentElement.querySelector('.pt-canvas');
+  const stage = parentElement.querySelector('.pt-stage');
+  const guide = parentElement.querySelector('.pt-guide');
+  const idle = parentElement.querySelector('.pt-idle');
+  const startBtn = parentElement.querySelector('.pt-start');
+  const shotBtn = parentElement.querySelector('.pt-shot');
+  const status = parentElement.querySelector('.pt-cam-status');
+  const warning = parentElement.querySelector('.pt-browser-warning');
+  const copyBtn = parentElement.querySelector('.pt-copy');
 
   let stream = null;
 
-  const ua =
-    navigator.userAgent || '';
-
-  const inApp =
-    /FBAN|FBAV|Instagram|Line\/|Zalo|Messenger/i
-      .test(ua);
+  const ua = navigator.userAgent || '';
+  const inApp = /FBAN|FBAV|Instagram|Line\/|Zalo|Messenger/i.test(ua);
 
   if (inApp) {
     warning.hidden = false;
-    warning.textContent =
-      'Bạn đang mở trong trình duyệt nhúng. '
-      + 'Nếu camera không chạy, hãy mở '
-      + 'Perilla Tag bằng Chrome hoặc Safari.';
-
+    warning.textContent = 'Bạn đang mở trong trình duyệt nhúng. Nếu camera không chạy, hãy mở Perilla Tag bằng Chrome hoặc Safari.';
     copyBtn.hidden = false;
   }
 
-  if (
-    !window.isSecureContext
-    &&
-    location.hostname !== 'localhost'
-  ) {
+  if (!window.isSecureContext && location.hostname !== 'localhost') {
     warning.hidden = false;
-
-    warning.textContent =
-      'Camera web cần kết nối HTTPS. '
-      + 'Hãy dùng bản đã deploy hoặc mở trên localhost.';
+    warning.textContent = 'Camera web cần kết nối HTTPS. Hãy dùng bản đã deploy hoặc mở trên localhost.';
   }
 
   function fitStageToVideo() {
-    if (
-      !video.videoWidth
-      ||
-      !video.videoHeight
-    ) {
-      return;
+    if (!video.videoWidth || !video.videoHeight) return;
+
+    const ratio = video.videoWidth / video.videoHeight;
+    const availableWidth = Math.max(180, parentElement.clientWidth - 16);
+
+    /* Giới hạn chiều cao để component không sinh thanh cuộn riêng. */
+    const maxHeight = window.innerWidth <= 640 ? 320 : 360;
+
+    let stageWidth = availableWidth;
+    let stageHeight = stageWidth / ratio;
+
+    if (stageHeight > maxHeight) {
+      stageHeight = maxHeight;
+      stageWidth = stageHeight * ratio;
     }
 
-    const ratio =
-      video.videoWidth
-      /
-      video.videoHeight;
-
-    const availableWidth =
-      Math.max(
-        180,
-        parentElement.clientWidth - 16
-      );
-
-    /*
-    Giới hạn chiều cao để component
-    không sinh thanh cuộn thứ hai.
-    */
-    const maxHeight =
-      window.innerWidth <= 640
-        ? 320
-        : 360;
-
-    let stageWidth =
-      availableWidth;
-
-    let stageHeight =
-      stageWidth / ratio;
-
-    if (
-      stageHeight > maxHeight
-    ) {
-      stageHeight =
-        maxHeight;
-
-      stageWidth =
-        stageHeight * ratio;
-    }
-
-    stage.style.width =
-      `${Math.round(stageWidth)}px`;
-
-    stage.style.height =
-      `${Math.round(stageHeight)}px`;
-
-    stage.style.aspectRatio =
-      'auto';
-
-    stage.style.margin =
-      '0 auto';
+    stage.style.width = `${Math.round(stageWidth)}px`;
+    stage.style.height = `${Math.round(stageHeight)}px`;
+    stage.style.aspectRatio = 'auto';
+    stage.style.margin = '0 auto';
   }
 
   async function stopCamera() {
     if (stream) {
-      stream
-        .getTracks()
-        .forEach(
-          track => track.stop()
-        );
-
+      stream.getTracks().forEach(track => track.stop());
       stream = null;
     }
-
     shotBtn.disabled = true;
     guide.hidden = true;
   }
 
   function friendlyError(err) {
-    if (!err) {
-      return (
-        'Không mở được camera. '
-        + 'Hãy thử lại.'
-      );
+    if (!err) return 'Không mở được camera. Hãy thử lại.';
+    if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+      return 'Bạn chưa cho phép dùng camera. Hãy cấp quyền camera rồi thử lại.';
     }
-
-    if (
-      err.name === 'NotAllowedError'
-      ||
-      err.name === 'SecurityError'
-    ) {
-      return (
-        'Bạn chưa cho phép dùng camera. '
-        + 'Hãy cấp quyền camera rồi thử lại.'
-      );
+    if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      return 'Không tìm thấy camera trên thiết bị.';
     }
-
-    if (
-      err.name === 'NotFoundError'
-      ||
-      err.name === 'DevicesNotFoundError'
-    ) {
-      return (
-        'Không tìm thấy camera trên thiết bị.'
-      );
+    if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+      return 'Camera có thể đang được ứng dụng khác sử dụng. Hãy đóng ứng dụng đó rồi thử lại.';
     }
-
-    if (
-      err.name === 'NotReadableError'
-      ||
-      err.name === 'TrackStartError'
-    ) {
-      return (
-        'Camera có thể đang được ứng dụng khác sử dụng. '
-        + 'Hãy đóng ứng dụng đó rồi thử lại.'
-      );
+    if (err.name === 'OverconstrainedError') {
+      return 'Camera không hỗ trợ cấu hình yêu cầu. Hãy thử lại.';
     }
-
-    if (
-      err.name === 'OverconstrainedError'
-    ) {
-      return (
-        'Camera không hỗ trợ cấu hình yêu cầu. '
-        + 'Hãy thử lại.'
-      );
-    }
-
-    return (
-      'Không mở được camera. '
-      + 'Hãy thử bằng Chrome/Safari '
-      + 'và kiểm tra quyền camera.'
-    );
+    return 'Không mở được camera. Hãy thử bằng Chrome/Safari và kiểm tra quyền camera.';
   }
 
   async function startCamera() {
     await stopCamera();
 
-    if (
-      !navigator.mediaDevices
-      ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
-      status.textContent =
-        'Trình duyệt này không hỗ trợ camera web. '
-        + 'Hãy dùng Chrome hoặc Safari.';
-
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      status.textContent = 'Trình duyệt này không hỗ trợ camera web. Hãy dùng Chrome hoặc Safari.';
       return;
     }
 
@@ -830,169 +650,68 @@ export default function({ parentElement, setStateValue }) {
     status.textContent = 'Đang xin quyền camera…';
 
     try {
-      stream =
-        await navigator
-          .mediaDevices
-          .getUserMedia(
-            {
-              audio: false,
-
-              video: {
-                facingMode: {
-                  ideal: 'environment'
-                },
-
-                width: {
-                  ideal: 1280,
-                  max: 1920
-                },
-
-                height: {
-                  ideal: 960,
-                  max: 1920
-                }
-              }
-            }
-          );
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 960, max: 1920 }
+        }
+      });
 
       video.srcObject = stream;
-
       await video.play();
 
-      /*
-      Chỉ lúc camera thật đã mở
-      mới biết tỉ lệ ảnh chính xác.
-      */
+      /* Chỉ bây giờ mới biết chính xác tỉ lệ camera thật. */
       fitStageToVideo();
-
       idle.style.display = 'none';
-
-      /*
-      ROI chỉ hiện lúc này.
-      */
       guide.hidden = false;
-
       shotBtn.disabled = false;
-
-      status.textContent =
-        'Camera đã sẵn sàng. '
-        + 'Đặt vùng màu của thẻ vào khung rồi chụp.';
-
-      startBtn.textContent =
-        'Bật lại camera';
-
+      status.textContent = 'Camera đã sẵn sàng. Đặt vùng màu của thẻ vào khung rồi chụp.';
+      startBtn.textContent = 'Bật lại camera';
     } catch (err) {
-      status.textContent =
-        friendlyError(err);
-
-      idle.style.display =
-        'flex';
-
-      guide.hidden =
-        true;
-
-      shotBtn.disabled =
-        true;
-    }
-
-    finally {
-      startBtn.disabled =
-        false;
+      status.textContent = friendlyError(err);
+      idle.style.display = 'flex';
+      guide.hidden = true;
+      shotBtn.disabled = true;
+    } finally {
+      startBtn.disabled = false;
     }
   }
 
   function capture() {
-    if (
-      !stream
-      ||
-      !video.videoWidth
-      ||
-      !video.videoHeight
-    ) {
-      status.textContent =
-        'Camera chưa sẵn sàng.';
-
+    if (!stream || !video.videoWidth || !video.videoHeight) {
+      status.textContent = 'Camera chưa sẵn sàng.';
       return;
     }
 
-    canvas.width =
-      video.videoWidth;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    canvas.height =
-      video.videoHeight;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const ctx =
-      canvas.getContext(
-        '2d',
-        {
-          alpha: false
-        }
-      );
-
-    ctx.drawImage(
-      video,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    const dataUrl =
-      canvas.toDataURL(
-        'image/jpeg',
-        0.92
-      );
-
-    status.textContent =
-      'Đã chụp. '
-      + 'Perilla Tag đang đọc màu…';
-
-    setStateValue(
-      'image_data_url',
-      dataUrl
-    );
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    status.textContent = 'Đã chụp. Perilla Tag đang đọc màu…';
+    setStateValue('image_data_url', dataUrl);
   }
 
   async function copyLink() {
     try {
-      await navigator
-        .clipboard
-        .writeText(
-          window.location.href
-        );
-
-      copyBtn.textContent =
-        'Đã sao chép liên kết';
-
+      await navigator.clipboard.writeText(window.location.href);
+      copyBtn.textContent = 'Đã sao chép liên kết';
     } catch (e) {
-      copyBtn.textContent =
-        'Không sao chép được — hãy dùng menu Chia sẻ';
+      copyBtn.textContent = 'Không sao chép được — hãy dùng menu Chia sẻ';
     }
   }
 
-  startBtn.addEventListener(
-    'click',
-    startCamera
-  );
+  startBtn.addEventListener('click', startCamera);
+  shotBtn.addEventListener('click', capture);
+  copyBtn.addEventListener('click', copyLink);
 
-  shotBtn.addEventListener(
-    'click',
-    capture
-  );
-
-  copyBtn.addEventListener(
-    'click',
-    copyLink
-  );
-
-  window.addEventListener(
-    'resize',
-    () => {
-      if (stream) {
-        fitStageToVideo();
-      }
-    }
-  );
+  window.addEventListener('resize', () => {
+    if (stream) fitStageToVideo();
+  });
 
   return () => {
     stopCamera();
@@ -1012,37 +731,18 @@ camera_component = st.components.v2.component(
 # HÀM XỬ LÝ ẢNH / HIỂN THỊ
 # ============================================================
 
-def data_url_to_image(
-    data_url: str,
-) -> Image.Image:
+
+def data_url_to_image(data_url: str) -> Image.Image:
     """Đổi ảnh JPEG data URL từ camera thành PIL Image."""
-
     try:
-        header, encoded = data_url.split(
-            ",",
-            1,
-        )
-
+        header, encoded = data_url.split(",", 1)
         if "base64" not in header:
-            raise ValueError(
-                "Ảnh camera không đúng định dạng base64."
-            )
-
-        raw = base64.b64decode(
-            encoded,
-            validate=True,
-        )
-
-        return normalize_image(
-            Image.open(
-                io.BytesIO(raw)
-            )
-        )
-
+            raise ValueError("Ảnh camera không đúng định dạng base64.")
+        raw = base64.b64decode(encoded, validate=True)
+        return normalize_image(Image.open(io.BytesIO(raw)))
     except Exception as exc:
-        raise ValueError(
-            "Không đọc được ảnh từ camera."
-        ) from exc
+        raise ValueError("Không đọc được ảnh từ camera.") from exc
+
 
 
 def make_roi_preview(
@@ -1053,190 +753,67 @@ def make_roi_preview(
     Tạo preview có ROI tím rõ để người dùng biết app sẽ đọc vùng nào.
     Preview này KHÔNG dùng để tính màu.
     """
-
     preview = image.copy()
-
-    draw = ImageDraw.Draw(
-        preview
-    )
-
+    draw = ImageDraw.Draw(preview)
     x1, y1, x2, y2 = coords
 
-    base = min(
-        image.size
-    )
+    base = min(image.size)
+    outer_width = max(5, int(round(base * 0.010)))
+    inner_width = max(2, int(round(base * 0.004)))
 
-    outer_width = max(
-        5,
-        int(
-            round(
-                base * 0.010
-            )
-        ),
-    )
-
-    inner_width = max(
-        2,
-        int(
-            round(
-                base * 0.004
-            )
-        ),
-    )
-
-    # Viền tím đậm ngoài.
+    # Viền tím đậm ngoài: vẫn thấy rõ trên nền trắng.
     draw.rectangle(
-        (
-            x1,
-            y1,
-            x2,
-            y2,
-        ),
-        outline=(
-            67,
-            22,
-            84,
-        ),
+        (x1, y1, x2, y2),
+        outline=(67, 22, 84),
         width=outer_width,
     )
 
-    inset = max(
-        1,
-        outer_width // 2
-    )
-
-    if (
-        (x2 - x1) > 2 * inset
-        and
-        (y2 - y1) > 2 * inset
-    ):
+    inset = max(1, outer_width // 2)
+    if (x2 - x1) > 2 * inset and (y2 - y1) > 2 * inset:
         draw.rectangle(
-            (
-                x1 + inset,
-                y1 + inset,
-                x2 - inset,
-                y2 - inset,
-            ),
-            outline=(
-                218,
-                117,
-                248,
-            ),
+            (x1 + inset, y1 + inset, x2 - inset, y2 - inset),
+            outline=(218, 117, 248),
             width=inner_width,
         )
 
+    # Nhãn ROI nhỏ ở góc trên trái.
     label = "ROI"
-
-    text_x = (
-        x1 + outer_width + 4
-    )
-
-    text_y = (
-        y1 + outer_width + 4
-    )
+    text_x = x1 + outer_width + 4
+    text_y = y1 + outer_width + 4
 
     try:
-        bbox = draw.textbbox(
-            (
-                text_x,
-                text_y,
-            ),
-            label,
-        )
-
-        pad = max(
-            4,
-            int(
-                round(
-                    base * 0.004
-                )
-            ),
-        )
-
+        bbox = draw.textbbox((text_x, text_y), label)
+        pad = max(4, int(round(base * 0.004)))
         draw.rectangle(
-            (
-                bbox[0] - pad,
-                bbox[1] - pad,
-                bbox[2] + pad,
-                bbox[3] + pad,
-            ),
-            fill=(
-                67,
-                22,
-                84,
-            ),
+            (bbox[0] - pad, bbox[1] - pad, bbox[2] + pad, bbox[3] + pad),
+            fill=(67, 22, 84),
         )
-
-        draw.text(
-            (
-                text_x,
-                text_y,
-            ),
-            label,
-            fill=(
-                255,
-                255,
-                255,
-            ),
-        )
-
+        draw.text((text_x, text_y), label, fill=(255, 255, 255))
     except Exception:
         pass
 
     return preview
 
 
-def show_result_card(
-    kind: str,
-    title: str,
-    message: str,
-) -> None:
 
+def show_result_card(kind: str, title: str, message: str) -> None:
     css_class = {
-        "fresh":
-            "pt-fresh",
-
-        "transition":
-            "pt-transition",
-
-        "spoilage_sign":
-            "pt-spoiled",
-
-        "spoiled":
-            "pt-spoiled",
-
-        "error":
-            "pt-error",
-
-        "missing":
-            "pt-missing",
-    }.get(
-        kind,
-        "pt-missing",
-    )
+        "fresh": "pt-fresh",
+        "transition": "pt-transition",
+        "spoilage_sign": "pt-spoiled",
+        "spoiled": "pt-spoiled",
+        "error": "pt-error",
+        "missing": "pt-missing",
+    }.get(kind, "pt-missing")
 
     icon = {
-        "fresh":
-            "✓",
-
-        "transition":
-            "!",
-
-        "spoilage_sign":
-            "×",
-
-        "spoiled":
-            "×",
-
-        "error":
-            "!",
-
-        "missing":
-            "◇",
-    }.get(
-        kind,
-        "◇",
-    )
+        "fresh": "✓",
+        "transition": "!",
+        "spoilage_sign": "×",
+        "spoiled": "×",
+        "error": "!",
+        "missing": "◇",
+    }.get(kind, "◇")
 
     st.markdown(
         f"""
@@ -1248,62 +825,26 @@ def show_result_card(
       <div class="big">{title}</div>
     </div>
   </div>
-
-  <p class="small">
-    {message}
-  </p>
+  <p class="small">{message}</p>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
 
-def process_and_render(
-    image: Image.Image,
-    source_name: str,
-) -> None:
-    """
-    Ảnh
-    → ROI
-    → màu
-    → Hue
-    → phân loại V1
-    → hiển thị.
-    """
 
+def process_and_render(image: Image.Image, source_name: str) -> None:
+    """Ảnh → ROI → màu → Hue → phân loại V1 → hiển thị."""
     try:
-        image = normalize_image(
-            image
-        )
-
-        roi, coords = crop_indicator_roi(
-            image
-        )
-
-        color = analyze_color(
-            roi
-        )
-
-        state = classify_hue(
-            color.hue
-        )
-
-        quality = assess_image_quality(
-            color
-        )
-
-        near_boundary = is_near_hue_boundary(
-            color.hue
-        )
-
+        image = normalize_image(image)
+        roi, coords = crop_indicator_roi(image)
+        color = analyze_color(roi)
+        state = classify_hue(color.hue)
+        quality = assess_image_quality(color)
+        near_boundary = is_near_hue_boundary(color.hue)
     except ValueError as exc:
-        show_result_card(
-            "error",
-            "KHÔNG THỂ PHÂN TÍCH ẢNH",
-            str(exc),
-        )
+        show_result_card("error", "KHÔNG THỂ PHÂN TÍCH ẢNH", str(exc))
         return
-
     except Exception:
         show_result_card(
             "error",
@@ -1315,159 +856,75 @@ def process_and_render(
     labels = {
         "fresh": (
             "CÒN TƯƠI",
-            (
-                "Màu thẻ nằm trong vùng Hue "
-                "quan sát ở giai đoạn đầu "
-                "của dữ liệu thực nghiệm."
-            ),
+            "Màu thẻ nằm trong vùng Hue quan sát ở giai đoạn đầu của dữ liệu thực nghiệm.",
         ),
-
         "transition": (
             "ĐANG THAY ĐỔI",
-            (
-                "Hue nằm trong vùng trung gian "
-                "giữa hai ngưỡng thực nghiệm. "
-                "Màu vàng/cam của card chỉ dùng "
-                "để phân biệt giao diện, không phải "
-                "màu chuẩn của thẻ."
-            ),
+            "Hue nằm trong vùng trung gian giữa hai ngưỡng thực nghiệm. Màu vàng/cam của card chỉ dùng để phân biệt giao diện, không phải màu chuẩn của thẻ.",
         ),
-
         "spoilage_sign": (
             "CÓ DẤU HIỆU HƯ HỎNG",
-            (
-                "Màu thẻ nằm trong vùng Hue thấp "
-                "gắn với các mốc đã xuất hiện "
-                "dấu hiệu cảm quan bất thường "
-                "trong thực nghiệm."
-            ),
+            "Màu thẻ nằm trong vùng Hue thấp gắn với các mốc đã xuất hiện dấu hiệu cảm quan bất thường trong thực nghiệm.",
         ),
     }
 
-    title, message = labels[
-        state
-    ]
-
-    show_result_card(
-        state,
-        title,
-        message,
-    )
+    title, message = labels[state]
+    show_result_card(state, title, message)
 
     st.caption(
-        "Kết quả được suy ra từ vùng Hue thực nghiệm "
-        "của đề tài, chỉ mang tính tham khảo và không "
-        "thay thế kiểm nghiệm an toàn thực phẩm."
+        "Kết quả được suy ra từ vùng Hue thực nghiệm của đề tài, chỉ mang tính tham khảo "
+        "và không thay thế kiểm nghiệm an toàn thực phẩm."
     )
 
     if quality.low_confidence:
         st.warning(
-            "**ĐỘ TIN CẬY MÀU THẤP** — "
-            "Ảnh có thể bị ảnh hưởng bởi ánh sáng, "
-            "phản chiếu hoặc vùng màu quá ít bão hòa. "
-            "Hãy chụp lại dưới ánh sáng trắng, đều "
-            "và tránh phản sáng trên bề mặt thẻ."
+            "**ĐỘ TIN CẬY MÀU THẤP** — Ảnh có thể bị ảnh hưởng bởi ánh sáng, phản chiếu "
+            "hoặc vùng màu quá ít bão hòa. Hãy chụp lại dưới ánh sáng trắng, đều và tránh "
+            "phản sáng trên bề mặt thẻ."
         )
 
     if near_boundary:
         st.info(
-            "Giá trị màu đang gần ranh giới giữa hai mức. "
-            "Trạng thái chính vẫn được xác định theo "
-            "ngưỡng Hue V1 đã chốt."
+            "Giá trị màu đang gần ranh giới giữa hai mức. Trạng thái chính vẫn được xác định "
+            "theo ngưỡng Hue V1 đã chốt."
         )
 
-    with st.expander(
-        "Xem chi tiết kỹ thuật",
-        expanded=False,
-    ):
-        st.caption(
-            f"Nguồn ảnh: {source_name}"
-        )
+    with st.expander("Xem chi tiết kỹ thuật", expanded=False):
+        st.caption(f"Nguồn ảnh: {source_name}")
 
-        c1, c2, c3 = st.columns(
-            3
-        )
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Mean R", f"{color.r:.2f}")
+        c2.metric("Mean G", f"{color.g:.2f}")
+        c3.metric("Mean B", f"{color.b:.2f}")
 
-        c1.metric(
-            "Mean R",
-            f"{color.r:.2f}",
-        )
+        c4, c5, c6 = st.columns(3)
+        c4.metric("Hue", f"{color.hue:.2f}°")
+        c5.metric("Saturation", f"{color.saturation:.2f}%")
+        c6.metric("Value", f"{color.value:.2f}%")
 
-        c2.metric(
-            "Mean G",
-            f"{color.g:.2f}",
-        )
-
-        c3.metric(
-            "Mean B",
-            f"{color.b:.2f}",
-        )
-
-        c4, c5, c6 = st.columns(
-            3
-        )
-
-        c4.metric(
-            "Hue",
-            f"{color.hue:.2f}°",
-        )
-
-        c5.metric(
-            "Saturation",
-            f"{color.saturation:.2f}%",
-        )
-
-        c6.metric(
-            "Value",
-            f"{color.value:.2f}%",
-        )
-
-        st.write(
-            f"**HEX:** `{color.hex_code}`"
-        )
-
-        st.write(
-            "**Kích thước ảnh thật:** "
-            f"{image.width} × "
-            f"{image.height} px"
-        )
-
-        st.write(
-            "**ROI pixel "
-            "(x1, y1, x2, y2):** "
-            f"`{coords}`"
-        )
-
+        st.write(f"**HEX:** `{color.hex_code}`")
+        st.write(f"**Kích thước ảnh thật:** {image.width} × {image.height} px")
+        st.write(f"**ROI pixel (x1, y1, x2, y2):** `{coords}`")
         st.write(
             "**ROI theo tỷ lệ:** "
-            f"`x={ROI_NORMALIZED[0]:.2f}"
-            f"→{ROI_NORMALIZED[2]:.2f}, "
-            f"y={ROI_NORMALIZED[1]:.2f}"
-            f"→{ROI_NORMALIZED[3]:.2f}`"
+            f"`x={ROI_NORMALIZED[0]:.2f}→{ROI_NORMALIZED[2]:.2f}, "
+            f"y={ROI_NORMALIZED[1]:.2f}→{ROI_NORMALIZED[3]:.2f}`"
         )
-
         st.write(
-            "**Pixel dùng để tính màu:** "
-            f"{color.used_pixels:,}/"
-            f"{color.sampled_pixels:,} "
+            f"**Pixel dùng để tính màu:** {color.used_pixels:,}/{color.sampled_pixels:,} "
             f"({color.valid_ratio * 100:.1f}%)"
         )
-
         st.write(
-            "**Pixel bị loại ở bước sáng/tối:** "
-            f"{color.extreme_reject_ratio * 100:.1f}%"
+            f"**Pixel bị loại ở bước sáng/tối:** {color.extreme_reject_ratio * 100:.1f}%"
         )
-
         st.write(
             "**Bộ lọc dự phòng:** "
             + (
-                "Có — ROI có quá ít pixel "
-                "qua bước lọc ban đầu"
+                "Có — ROI có quá ít pixel qua bước lọc ban đầu"
                 if color.filter_fallback
                 else "Không"
             )
         )
-
         st.write(
             "**Chất lượng ảnh:** "
             + (
@@ -1476,255 +933,177 @@ def process_and_render(
                 else "Ổn"
             )
         )
-
         st.write(
-            "**Ngưỡng Hue V1:** "
-            f"`≥ {FRESH_HUE_MIN:.2f}°` = Còn tươi; "
-            f"`≤ {SPOILAGE_HUE_MAX:.2f}°` "
-            "= Có dấu hiệu hư hỏng"
+            f"**Ngưỡng Hue V1:** `≥ {FRESH_HUE_MIN:.2f}°` = Còn tươi; "
+            f"`≤ {SPOILAGE_HUE_MAX:.2f}°` = Có dấu hiệu hư hỏng"
+        )
+        st.write(
+            f"**Vùng cảnh báo gần ranh giới:** ±{BOUNDARY_WARNING_DEG:.2f}° "
+            "(tham số kỹ thuật giao diện, không phải ngưỡng khoa học)"
+        )
+        st.write(
+            f"**Thứ tự feature nếu phát triển model sau này:** `{list(FEATURE_SCHEMA)}`"
         )
 
-        st.write(
-            "**Vùng cảnh báo gần ranh giới:** "
-            f"±{BOUNDARY_WARNING_DEG:.2f}° "
-            "(tham số kỹ thuật giao diện, "
-            "không phải ngưỡng khoa học)"
-        )
-
-        st.write(
-            "**Thứ tự feature nếu phát triển model sau này:** "
-            f"`{list(FEATURE_SCHEMA)}`"
-        )
-
-        st.write(
-            "**Ảnh ROI thật dùng để tính màu:**"
-        )
-
+        st.write("**Ảnh ROI thật dùng để tính màu:**")
         st.image(
             roi,
             use_container_width=False,
-            width=min(
-                320,
-                max(
-                    120,
-                    roi.width,
-                ),
-            ),
+            width=min(320, max(120, roi.width)),
         )
 
-        st.write(
-            "**Ảnh xem trước có khung ROI:**"
-        )
-
-        st.image(
-            make_roi_preview(
-                image,
-                coords,
-            ),
-            use_container_width=True,
-        )
+        st.write("**Ảnh xem trước có khung ROI:**")
+        st.image(make_roi_preview(image, coords), use_container_width=True)
 
 
 # ============================================================
 # LUỒNG ỨNG DỤNG
 # ============================================================
 
+st.markdown('<div class="pt-section-title">Quét thẻ</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="pt-section-title">Quét thẻ</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    (
-        '<div class="pt-section-sub">'
-        'Chụp trực tiếp hoặc chọn ảnh có sẵn. '
-        'Vùng màu của thẻ nên nằm ở giữa ảnh.'
-        '</div>'
-    ),
+    '<div class="pt-section-sub">Chụp trực tiếp hoặc chọn ảnh có sẵn. Vùng màu của thẻ nên nằm ở giữa ảnh.</div>',
     unsafe_allow_html=True,
 )
 
 mode = st.radio(
     "Cách đưa ảnh vào",
-    [
-        "📷 Chụp thẻ",
-        "▣ Chọn ảnh",
-    ],
+    ["📷 Chụp thẻ", "▣ Chọn ảnh"],
     horizontal=True,
     label_visibility="collapsed",
 )
 
 
-# ============================================================
-# CAMERA
-# ============================================================
-
 if mode == "📷 Chụp thẻ":
-
     st.markdown(
-        (
-            '<div class="pt-note">'
-            'Mẹo: giữ điện thoại ổn định, tránh bóng đổ. '
-            'Khung ROI chỉ xuất hiện sau khi camera thật '
-            'đã mở để khớp đúng hướng ảnh.'
-            '</div>'
-        ),
+        '<div class="pt-note">Mẹo: giữ điện thoại ổn định, tránh bóng đổ. Khung ROI chỉ xuất hiện sau khi camera thật đã mở để khớp đúng hướng ảnh.</div>',
         unsafe_allow_html=True,
     )
 
     st.write("")
 
     camera_result = camera_component(
-        default={
-            "image_data_url": ""
-        },
+        default={"image_data_url": ""},
         on_image_data_url_change=lambda: None,
         key="perilla_camera",
         width="stretch",
-        height=500,
+        height=470,
     )
 
-    camera_data = (
-        getattr(
-            camera_result,
-            "image_data_url",
-            "",
-        )
-        or ""
-    )
+    camera_data = getattr(camera_result, "image_data_url", "") or ""
 
     if camera_data:
         try:
-            camera_image = data_url_to_image(
-                camera_data
-            )
-
-            process_and_render(
-                camera_image,
-                "Camera",
-            )
-
+            camera_image = data_url_to_image(camera_data)
+            process_and_render(camera_image, "Camera")
         except ValueError as exc:
-            show_result_card(
-                "error",
-                "KHÔNG ĐỌC ĐƯỢC ẢNH CAMERA",
-                str(exc),
-            )
+            show_result_card("error", "KHÔNG ĐỌC ĐƯỢC ẢNH CAMERA", str(exc))
 
-
-# ============================================================
-# UPLOAD
-# ============================================================
 
 else:
-
-    if (
-        "uploader_version"
-        not in st.session_state
-    ):
+    if "uploader_version" not in st.session_state:
         st.session_state.uploader_version = 0
+
+    if "upload_signature" not in st.session_state:
+        st.session_state.upload_signature = ""
+
+    if "upload_analyzed" not in st.session_state:
+        st.session_state.upload_analyzed = False
 
     uploaded = st.file_uploader(
         "Chọn ảnh thẻ chỉ thị",
-        type=[
-            "jpg",
-            "jpeg",
-            "png",
-            "webp",
-        ],
-        help=(
-            "Thẻ nên nằm ở vùng giữa ảnh "
-            "để ROI tự động lấy đúng màu."
-        ),
-        key=(
-            f"perilla_upload_"
-            f"{st.session_state.uploader_version}"
-        ),
+        type=["jpg", "jpeg", "png", "webp"],
+        help="Thẻ nên nằm ở vùng giữa ảnh để ROI tự động lấy đúng màu.",
+        key=f"perilla_upload_{st.session_state.uploader_version}",
     )
 
     if uploaded is not None:
-
         try:
+            uploaded_bytes = uploaded.getvalue()
+            current_signature = hashlib.sha1(uploaded_bytes).hexdigest()
+
+            # Ảnh mới -> bắt buộc xem ROI trước, chưa phân tích ngay.
+            if current_signature != st.session_state.upload_signature:
+                st.session_state.upload_signature = current_signature
+                st.session_state.upload_analyzed = False
 
             uploaded_image = normalize_image(
-                Image.open(
-                    uploaded
-                )
+                Image.open(io.BytesIO(uploaded_bytes))
             )
 
-            # Preview ROI để người dùng biết app đang đọc chỗ nào.
-            _, upload_coords = crop_indicator_roi(
-                uploaded_image
-            )
+            # Tạo ROI preview trước khi phân tích.
+            _, upload_coords = crop_indicator_roi(uploaded_image)
+            upload_preview = make_roi_preview(uploaded_image, upload_coords)
 
-            upload_preview = make_roi_preview(
-                uploaded_image,
-                upload_coords,
-            )
+            # Preview nhỏ, cố định tối đa 320 px và căn giữa.
+            # Dùng HTML để tránh st.image kéo ảnh rộng bằng màn hình điện thoại.
+            preview_buffer = io.BytesIO()
+            upload_preview.save(preview_buffer, format="JPEG", quality=88)
+            preview_b64 = base64.b64encode(preview_buffer.getvalue()).decode("ascii")
 
-            st.image(
-                upload_preview,
-                caption=(
-                    "Khung tím là vùng "
-                    "Perilla Tag sẽ đọc màu"
-                ),
-                use_container_width=True,
+            st.markdown(
+                f"""
+<div style="display:flex;justify-content:center;margin:8px 0 4px;">
+  <div style="width:min(320px,100%);">
+    <img
+      src="data:image/jpeg;base64,{preview_b64}"
+      alt="Ảnh xem trước với vùng ROI"
+      style="width:100%;height:auto;display:block;border-radius:16px;border:1px solid rgba(226,197,237,.18);"
+    />
+  </div>
+</div>
+""",
+                unsafe_allow_html=True,
             )
 
             st.caption(
-                "Nếu phần màu của thẻ chưa nằm trong khung tím, "
-                "hãy chọn ảnh khác. Perilla Tag không tự kéo ROI "
-                "ở phiên bản V1."
+                "Khung tím là vùng Perilla Tag sẽ đọc màu. "
+                "Hãy kiểm tra thẻ nằm đúng trong khung trước khi bấm Phân tích màu."
             )
 
-            process_and_render(
-                uploaded_image,
-                "Ảnh đã chọn",
-            )
-
-            if st.button(
-                "Phân tích ảnh khác",
+            analyze_clicked = st.button(
+                "Phân tích màu",
+                type="primary",
                 use_container_width=True,
-            ):
-                st.session_state.uploader_version += 1
-                st.rerun()
+            )
+
+            if analyze_clicked:
+                st.session_state.upload_analyzed = True
+
+            if st.session_state.upload_analyzed:
+                process_and_render(
+                    uploaded_image,
+                    "Ảnh đã chọn",
+                )
+
+                if st.button(
+                    "Phân tích ảnh khác",
+                    use_container_width=True,
+                ):
+                    st.session_state.uploader_version += 1
+                    st.session_state.upload_signature = ""
+                    st.session_state.upload_analyzed = False
+                    st.rerun()
 
         except Exception:
-
             show_result_card(
                 "error",
                 "KHÔNG ĐỌC ĐƯỢC ẢNH",
-                (
-                    "File ảnh không đọc được. "
-                    "Hãy thử JPG, JPEG, PNG "
-                    "hoặc WEBP khác."
-                ),
+                "File ảnh không đọc được. Hãy thử JPG, JPEG, PNG hoặc WEBP khác.",
             )
 
     else:
-
         st.markdown(
-            (
-                '<div class="pt-note">'
-                'Chọn ảnh có thẻ nằm gần chính giữa. '
-                'Sau khi tải lên, app sẽ hiện khung tím '
-                'để bạn kiểm tra chính xác vùng ROI.'
-                '</div>'
-            ),
+            '<div class="pt-note">Chọn ảnh có thẻ nằm gần chính giữa. '
+            'Sau khi tải lên, app sẽ hiện ảnh xem trước nhỏ cùng khung ROI trước khi phân tích.</div>',
             unsafe_allow_html=True,
         )
 
 
-# ============================================================
-# FOOTER
-# ============================================================
-
 st.markdown(
     """
 <div class="pt-footer">
-Kết quả được suy ra từ vùng Hue thực nghiệm của đề tài,
-chỉ mang tính tham khảo và không thay thế kiểm nghiệm
-an toàn thực phẩm.
+Kết quả được suy ra từ vùng Hue thực nghiệm của đề tài, chỉ mang tính tham khảo và không thay thế kiểm nghiệm an toàn thực phẩm.
 </div>
 """,
     unsafe_allow_html=True,
