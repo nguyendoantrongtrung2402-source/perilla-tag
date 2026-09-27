@@ -1,3 +1,5 @@
+
+Thư viện
 from __future__ import annotations
 
 import base64
@@ -32,6 +34,10 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed",
 )
+
+# ROI cho ảnh từ thư viện: nhỏ hơn camera vì ảnh tải lên thường chụp xa hơn.
+# Đây là ROI thật dùng để tính màu, không chỉ là khung minh họa.
+UPLOAD_ROI_NORMALIZED = (0.42, 0.42, 0.58, 0.58)
 
 
 # ============================================================
@@ -317,13 +323,6 @@ st.markdown(
 
 CAMERA_HTML = """
 <div class="pt-camera-shell">
-  <div class="pt-cam-topline">
-    <span class="pt-dot"></span>
-    <span>Camera thẻ chỉ thị</span>
-  </div>
-
-  <div class="pt-browser-warning" hidden></div>
-
   <div class="pt-stage">
     <video class="pt-video" autoplay playsinline muted></video>
     <canvas class="pt-canvas" hidden></canvas>
@@ -333,7 +332,7 @@ CAMERA_HTML = """
       <span class="c tr"></span>
       <span class="c bl"></span>
       <span class="c br"></span>
-      <div class="pt-guide-label">Đặt thẻ vào trong khung</div>
+      <div class="pt-guide-label">Đưa vùng màu của thẻ phủ kín khung</div>
     </div>
 
     <div class="pt-idle">
@@ -350,8 +349,6 @@ CAMERA_HTML = """
       <span></span>
     </button>
   </div>
-
-  <button class="pt-copy" type="button" hidden>Sao chép liên kết</button>
 </div>
 """
 
@@ -359,7 +356,10 @@ CAMERA_CSS = """
 html, body {
   margin: 0 !important;
   padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   overflow: hidden !important;
+  overscroll-behavior: none !important;
   background: transparent !important;
 }
 
@@ -367,31 +367,14 @@ html, body {
 
 .pt-camera-shell {
   width: 100%;
-  padding: 8px;
-  overflow: hidden;
+  max-height: 420px;
+  padding: 6px;
+  overflow: hidden !important;
   border: 1px solid rgba(226,198,239,.14);
   border-radius: 20px;
   background: linear-gradient(145deg, rgba(30,20,37,.96), rgba(13,9,17,.99));
   color: #f7f2f9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.pt-cam-topline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 7px 2px;
-  color: #cbb8d2;
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.pt-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #bf75d9;
-  box-shadow: 0 0 13px rgba(191,117,217,.68);
 }
 
 .pt-stage {
@@ -400,7 +383,7 @@ html, body {
   aspect-ratio: 4 / 3;
   margin: 0 auto;
   overflow: hidden;
-  border-radius: 17px;
+  border-radius: 16px;
   background: radial-gradient(circle at center, #23172b, #070508);
   border: 1px solid rgba(255,255,255,.07);
 }
@@ -432,7 +415,7 @@ html, body {
   color: #bf83d3;
 }
 
-/* ROI chỉ hiện sau khi camera thật đã mở và biết đúng tỉ lệ video. */
+/* Camera giữ ROI 30% x 30% như bản đang ổn. */
 .pt-guide {
   position: absolute;
   left: 35%;
@@ -482,11 +465,11 @@ html, body {
 .br { right: -1px; bottom: -1px; border-width: 0 3px 3px 0; border-radius: 0 0 8px 0; }
 
 .pt-cam-status {
-  min-height: 17px;
-  margin: 7px 3px 1px;
+  min-height: 16px;
+  margin: 6px 3px 0;
   color: #b8a7bf;
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .pt-cam-actions {
@@ -494,11 +477,10 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
-.pt-start,
-.pt-copy {
+.pt-start {
   border: 1px solid rgba(222,190,236,.20);
   border-radius: 12px;
   padding: 8px 12px;
@@ -509,8 +491,8 @@ html, body {
 }
 
 .pt-shot {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   display: grid;
   place-items: center;
   padding: 5px;
@@ -521,8 +503,8 @@ html, body {
 }
 
 .pt-shot span {
-  width: 40px;
-  height: 40px;
+  width: 37px;
+  height: 37px;
   display: block;
   border-radius: 50%;
   background: #fff;
@@ -532,28 +514,7 @@ html, body {
 .pt-shot:not(:disabled):active span { transform: scale(.88); }
 .pt-shot:disabled { opacity: .28; cursor: not-allowed; }
 
-.pt-browser-warning {
-  margin: 0 0 8px;
-  padding: 9px 10px;
-  border: 1px solid rgba(235,172,89,.24);
-  border-radius: 12px;
-  background: rgba(119,72,31,.28);
-  color: #f2d8b7;
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.pt-copy {
-  margin: 6px auto 0;
-  font-size: 11px;
-}
-
-/* Fix: hidden phải thật sự biến mất. */
-.pt-copy[hidden],
-.pt-browser-warning[hidden],
-.pt-guide[hidden] {
-  display: none !important;
-}
+.pt-guide[hidden] { display: none !important; }
 """
 
 CAMERA_JS = r"""
@@ -569,33 +530,17 @@ export default function({ parentElement, setStateValue }) {
   const startBtn = parentElement.querySelector('.pt-start');
   const shotBtn = parentElement.querySelector('.pt-shot');
   const status = parentElement.querySelector('.pt-cam-status');
-  const warning = parentElement.querySelector('.pt-browser-warning');
-  const copyBtn = parentElement.querySelector('.pt-copy');
 
   let stream = null;
-
-  const ua = navigator.userAgent || '';
-  const inApp = /FBAN|FBAV|Instagram|Line\/|Zalo|Messenger/i.test(ua);
-
-  if (inApp) {
-    warning.hidden = false;
-    warning.textContent = 'Bạn đang mở trong trình duyệt nhúng. Nếu camera không chạy, hãy mở Perilla Tag bằng Chrome hoặc Safari.';
-    copyBtn.hidden = false;
-  }
-
-  if (!window.isSecureContext && location.hostname !== 'localhost') {
-    warning.hidden = false;
-    warning.textContent = 'Camera web cần kết nối HTTPS. Hãy dùng bản đã deploy hoặc mở trên localhost.';
-  }
 
   function fitStageToVideo() {
     if (!video.videoWidth || !video.videoHeight) return;
 
     const ratio = video.videoWidth / video.videoHeight;
-    const availableWidth = Math.max(180, parentElement.clientWidth - 16);
+    const availableWidth = Math.max(180, parentElement.clientWidth - 12);
 
-    /* Giới hạn chiều cao để component không sinh thanh cuộn riêng. */
-    const maxHeight = window.innerWidth <= 640 ? 320 : 360;
+    /* Giữ component thấp để tránh tạo thanh cuộn bên trong iframe. */
+    const maxHeight = window.innerWidth <= 640 ? 285 : 325;
 
     let stageWidth = availableWidth;
     let stageHeight = stageWidth / ratio;
@@ -631,17 +576,14 @@ export default function({ parentElement, setStateValue }) {
     if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
       return 'Camera có thể đang được ứng dụng khác sử dụng. Hãy đóng ứng dụng đó rồi thử lại.';
     }
-    if (err.name === 'OverconstrainedError') {
-      return 'Camera không hỗ trợ cấu hình yêu cầu. Hãy thử lại.';
-    }
-    return 'Không mở được camera. Hãy thử bằng Chrome/Safari và kiểm tra quyền camera.';
+    return 'Không mở được camera. Hãy thử lại hoặc dùng Safari/Chrome.';
   }
 
   async function startCamera() {
     await stopCamera();
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      status.textContent = 'Trình duyệt này không hỗ trợ camera web. Hãy dùng Chrome hoặc Safari.';
+      status.textContent = 'Trình duyệt này không hỗ trợ camera web.';
       return;
     }
 
@@ -661,13 +603,12 @@ export default function({ parentElement, setStateValue }) {
 
       video.srcObject = stream;
       await video.play();
-
-      /* Chỉ bây giờ mới biết chính xác tỉ lệ camera thật. */
       fitStageToVideo();
+
       idle.style.display = 'none';
       guide.hidden = false;
       shotBtn.disabled = false;
-      status.textContent = 'Camera đã sẵn sàng. Đặt vùng màu của thẻ vào khung rồi chụp.';
+      status.textContent = 'Đưa vùng màu của thẻ phủ kín khung rồi chụp.';
       startBtn.textContent = 'Bật lại camera';
     } catch (err) {
       status.textContent = friendlyError(err);
@@ -696,18 +637,8 @@ export default function({ parentElement, setStateValue }) {
     setStateValue('image_data_url', dataUrl);
   }
 
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      copyBtn.textContent = 'Đã sao chép liên kết';
-    } catch (e) {
-      copyBtn.textContent = 'Không sao chép được — hãy dùng menu Chia sẻ';
-    }
-  }
-
   startBtn.addEventListener('click', startCamera);
   shotBtn.addEventListener('click', capture);
-  copyBtn.addEventListener('click', copyLink);
 
   window.addEventListener('resize', () => {
     if (stream) fitStageToVideo();
@@ -833,11 +764,15 @@ def show_result_card(kind: str, title: str, message: str) -> None:
 
 
 
-def process_and_render(image: Image.Image, source_name: str) -> None:
+def process_and_render(
+    image: Image.Image,
+    source_name: str,
+    roi_normalized: tuple[float, float, float, float] = ROI_NORMALIZED,
+) -> None:
     """Ảnh → ROI → màu → Hue → phân loại V1 → hiển thị."""
     try:
         image = normalize_image(image)
-        roi, coords = crop_indicator_roi(image)
+        roi, coords = crop_indicator_roi(image, roi_normalized)
         color = analyze_color(roi)
         state = classify_hue(color.hue)
         quality = assess_image_quality(color)
@@ -907,8 +842,8 @@ def process_and_render(image: Image.Image, source_name: str) -> None:
         st.write(f"**ROI pixel (x1, y1, x2, y2):** `{coords}`")
         st.write(
             "**ROI theo tỷ lệ:** "
-            f"`x={ROI_NORMALIZED[0]:.2f}→{ROI_NORMALIZED[2]:.2f}, "
-            f"y={ROI_NORMALIZED[1]:.2f}→{ROI_NORMALIZED[3]:.2f}`"
+            f"`x={roi_normalized[0]:.2f}→{roi_normalized[2]:.2f}, "
+            f"y={roi_normalized[1]:.2f}→{roi_normalized[3]:.2f}`"
         )
         st.write(
             f"**Pixel dùng để tính màu:** {color.used_pixels:,}/{color.sampled_pixels:,} "
@@ -976,18 +911,18 @@ mode = st.radio(
 
 if mode == "📷 Chụp thẻ":
     st.markdown(
-        '<div class="pt-note">Mẹo: giữ điện thoại ổn định, tránh bóng đổ. Khung ROI chỉ xuất hiện sau khi camera thật đã mở để khớp đúng hướng ảnh.</div>',
+        '<div class="pt-note">Mẹo: giữ điện thoại ổn định, tránh bóng đổ và đưa vùng màu của thẻ phủ kín khung tím.</div>',
         unsafe_allow_html=True,
     )
 
-    st.write("")
+    st.caption("Nếu camera không hoạt động, hãy mở Perilla Tag trực tiếp bằng Safari hoặc Chrome.")
 
     camera_result = camera_component(
         default={"image_data_url": ""},
         on_image_data_url_change=lambda: None,
         key="perilla_camera",
         width="stretch",
-        height=470,
+        height=405,
     )
 
     camera_data = getattr(camera_result, "image_data_url", "") or ""
@@ -995,7 +930,7 @@ if mode == "📷 Chụp thẻ":
     if camera_data:
         try:
             camera_image = data_url_to_image(camera_data)
-            process_and_render(camera_image, "Camera")
+            process_and_render(camera_image, "Camera", ROI_NORMALIZED)
         except ValueError as exc:
             show_result_card("error", "KHÔNG ĐỌC ĐƯỢC ẢNH CAMERA", str(exc))
 
@@ -1013,7 +948,7 @@ else:
     uploaded = st.file_uploader(
         "Chọn ảnh thẻ chỉ thị",
         type=["jpg", "jpeg", "png", "webp"],
-        help="Thẻ nên nằm ở vùng giữa ảnh để ROI tự động lấy đúng màu.",
+        help="Vùng màu của thẻ nên nằm ở giữa ảnh. App sẽ dùng một ROI nhỏ ở trung tâm để hạn chế lấy nền.",
         key=f"perilla_upload_{st.session_state.uploader_version}",
     )
 
@@ -1032,7 +967,7 @@ else:
             )
 
             # Tạo ROI preview trước khi phân tích.
-            _, upload_coords = crop_indicator_roi(uploaded_image)
+            _, upload_coords = crop_indicator_roi(uploaded_image, UPLOAD_ROI_NORMALIZED)
             upload_preview = make_roi_preview(uploaded_image, upload_coords)
 
             # Preview nhỏ, cố định tối đa 320 px và căn giữa.
@@ -1057,8 +992,8 @@ else:
             )
 
             st.caption(
-                "Khung tím là vùng Perilla Tag sẽ đọc màu. "
-                "Hãy kiểm tra thẻ nằm đúng trong khung trước khi bấm Phân tích màu."
+                "Khung tím nhỏ là vùng Perilla Tag sẽ đọc màu thật. "
+                "Hãy để vùng màu của thẻ phủ kín khung trước khi bấm Phân tích màu."
             )
 
             analyze_clicked = st.button(
@@ -1074,6 +1009,7 @@ else:
                 process_and_render(
                     uploaded_image,
                     "Ảnh đã chọn",
+                    UPLOAD_ROI_NORMALIZED,
                 )
 
                 if st.button(
@@ -1094,8 +1030,8 @@ else:
 
     else:
         st.markdown(
-            '<div class="pt-note">Chọn ảnh có thẻ nằm gần chính giữa. '
-            'Sau khi tải lên, app sẽ hiện ảnh xem trước nhỏ cùng khung ROI trước khi phân tích.</div>',
+            '<div class="pt-note">Chọn ảnh có vùng màu của thẻ nằm gần chính giữa. '
+            'Ảnh xem trước sẽ hiện một ROI nhỏ; hãy chắc rằng ROI nằm hoàn toàn trên thẻ trước khi phân tích.</div>',
             unsafe_allow_html=True,
         )
 
@@ -1108,3 +1044,5 @@ Kết quả được suy ra từ vùng Hue thực nghiệm của đề tài, ch�
 """,
     unsafe_allow_html=True,
 )
+
+
