@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import base64
 import io
-from pathlib import Path
 
 import streamlit as st
 from PIL import Image, ImageDraw
 
 from perilla_core import (
+    BOUNDARY_WARNING_DEG,
     FEATURE_SCHEMA,
+    FRESH_HUE_MIN,
     ROI_NORMALIZED,
+    SPOILAGE_HUE_MAX,
     analyze_color,
+    assess_image_quality,
+    classify_hue,
     crop_indicator_roi,
-    load_model,
+    is_near_hue_boundary,
     normalize_image,
-    predict_state,
 )
-
-APP_DIR = Path(__file__).resolve().parent
-MODEL_PATH = APP_DIR / "model.joblib"
 
 st.set_page_config(
     page_title="Perilla Tag",
