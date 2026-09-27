@@ -322,9 +322,7 @@ CAMERA_HTML = """
     <div class="pt-status">Camera chưa bật.</div>
 
     <button class="pt-start" type="button">Bật camera</button>
-
     <button class="pt-restart" type="button" hidden aria-label="Bật lại camera">↻</button>
-
     <button class="pt-shot" type="button" hidden disabled aria-label="Chụp thẻ">
       <span></span>
     </button>
@@ -337,9 +335,7 @@ html, body {
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
-  height: 100% !important;
   overflow: hidden !important;
-  overscroll-behavior: none !important;
   background: transparent !important;
 }
 
@@ -347,18 +343,21 @@ html, body {
 
 .pt-camera-shell {
   width: 100%;
-  height: 100%;
-  padding: 5px;
+  padding: 4px;
   overflow: hidden !important;
   color: #f7f2f9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/*
+  Giữ camera cố định 4:3.
+  Không resize khung theo camera sau khi bật -> tránh iframe đổi chiều cao,
+  tránh double-scroll và tránh nút chụp bị đẩy ra ngoài.
+*/
 .pt-stage {
   position: relative;
   width: 100%;
-  height: 100%;
-  max-height: 350px;
+  aspect-ratio: 4 / 3;
   margin: 0 auto;
   overflow: hidden;
   border: 1px solid rgba(226,198,239,.14);
@@ -373,13 +372,14 @@ html, body {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   background: #050407;
 }
 
 .pt-idle {
   position: absolute;
   inset: 0;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -397,7 +397,6 @@ html, body {
   color: #bf83d3;
 }
 
-/* Camera giữ ROI 30% x 30%, khớp ROI_NORMALIZED 0.35 -> 0.65. */
 .pt-guide {
   position: absolute;
   left: 35%;
@@ -405,7 +404,7 @@ html, body {
   width: 30%;
   height: 30%;
   pointer-events: none;
-  z-index: 4;
+  z-index: 5;
 }
 
 .pt-guide::before {
@@ -416,14 +415,14 @@ html, body {
   border-radius: 13px;
   background: rgba(183,94,218,.035);
   box-shadow:
-    0 0 0 999px rgba(0,0,0,.15),
+    0 0 0 999px rgba(0,0,0,.12),
     0 0 18px rgba(193,112,224,.20);
 }
 
 .pt-guide-label {
   position: absolute;
   left: 50%;
-  top: -30px;
+  top: -29px;
   transform: translateX(-50%);
   white-space: nowrap;
   padding: 5px 8px;
@@ -438,7 +437,7 @@ html, body {
   position: absolute;
   width: 18px;
   height: 18px;
-  z-index: 5;
+  z-index: 6;
   border-color: #fff;
   border-style: solid;
 }
@@ -450,14 +449,14 @@ html, body {
 
 .pt-status {
   position: absolute;
-  left: 10px;
-  right: 52px;
+  left: 9px;
+  right: 48px;
   top: 9px;
   z-index: 8;
   min-height: 24px;
-  padding: 6px 9px;
+  padding: 6px 8px;
   border-radius: 10px;
-  background: rgba(8,5,10,.62);
+  background: rgba(8,5,10,.60);
   color: #d7c7db;
   font-size: 10px;
   line-height: 1.25;
@@ -467,9 +466,9 @@ html, body {
 .pt-start {
   position: absolute;
   left: 50%;
-  bottom: 17px;
+  bottom: 16px;
   transform: translateX(-50%);
-  z-index: 9;
+  z-index: 10;
   border: 1px solid rgba(222,190,236,.22);
   border-radius: 13px;
   padding: 10px 15px;
@@ -481,9 +480,9 @@ html, body {
 
 .pt-restart {
   position: absolute;
-  right: 10px;
+  right: 9px;
   top: 9px;
-  z-index: 9;
+  z-index: 10;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -497,24 +496,24 @@ html, body {
 .pt-shot {
   position: absolute;
   left: 50%;
-  bottom: 13px;
+  bottom: 12px;
   transform: translateX(-50%);
-  z-index: 10;
-  width: 62px;
-  height: 62px;
+  z-index: 11;
+  width: 60px;
+  height: 60px;
   display: grid;
   place-items: center;
   padding: 5px;
   border: 3px solid rgba(255,255,255,.96);
   border-radius: 50%;
-  background: rgba(8,5,10,.34);
+  background: rgba(8,5,10,.30);
   box-shadow: 0 8px 24px rgba(0,0,0,.28);
   cursor: pointer;
 }
 
 .pt-shot span {
-  width: 43px;
-  height: 43px;
+  width: 41px;
+  height: 41px;
   display: block;
   border-radius: 50%;
   background: #fff;
@@ -539,7 +538,6 @@ export default function({ parentElement, setStateValue }) {
 
   const video = parentElement.querySelector('.pt-video');
   const canvas = parentElement.querySelector('.pt-canvas');
-  const stage = parentElement.querySelector('.pt-stage');
   const guide = parentElement.querySelector('.pt-guide');
   const idle = parentElement.querySelector('.pt-idle');
   const startBtn = parentElement.querySelector('.pt-start');
@@ -549,31 +547,13 @@ export default function({ parentElement, setStateValue }) {
 
   let stream = null;
 
-  function fitStageToVideo() {
-    if (!video.videoWidth || !video.videoHeight) return;
-
-    const ratio = video.videoWidth / video.videoHeight;
-    const availableWidth = Math.max(180, parentElement.clientWidth - 10);
-    const maxHeight = Math.min(340, Math.max(260, window.innerHeight * 0.44));
-
-    let width = availableWidth;
-    let height = width / ratio;
-
-    if (height > maxHeight) {
-      height = maxHeight;
-      width = height * ratio;
-    }
-
-    stage.style.width = `${Math.round(width)}px`;
-    stage.style.height = `${Math.round(height)}px`;
-  }
-
   async function stopCamera() {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       stream = null;
     }
 
+    video.srcObject = null;
     shotBtn.disabled = true;
     shotBtn.hidden = true;
     restartBtn.hidden = true;
@@ -591,6 +571,9 @@ export default function({ parentElement, setStateValue }) {
     if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
       return 'Camera có thể đang được ứng dụng khác sử dụng.';
     }
+    if (err.name === 'OverconstrainedError') {
+      return 'Camera không hỗ trợ cấu hình yêu cầu. Hãy thử lại.';
+    }
     return 'Không mở được camera. Hãy thử lại bằng Safari hoặc Chrome.';
   }
 
@@ -603,23 +586,40 @@ export default function({ parentElement, setStateValue }) {
       return;
     }
 
+    startBtn.hidden = false;
     startBtn.disabled = true;
     startBtn.textContent = 'Đang mở…';
     status.textContent = 'Đang xin quyền camera…';
 
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
+      const constraints = {
         audio: false,
         video: {
           facingMode: { ideal: 'environment' },
+          aspectRatio: { ideal: 1.3333333333 },
           width: { ideal: 1280, max: 1920 },
-          height: { ideal: 960, max: 1920 }
+          height: { ideal: 960, max: 1440 }
         }
-      });
+      };
 
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      video.setAttribute('playsinline', '');
+      video.setAttribute('autoplay', '');
+      video.muted = true;
       video.srcObject = stream;
+
+      if (video.readyState < 1) {
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('metadata-timeout')), 5000);
+          video.onloadedmetadata = () => {
+            clearTimeout(timer);
+            resolve();
+          };
+        });
+      }
+
       await video.play();
-      fitStageToVideo();
 
       idle.style.display = 'none';
       guide.hidden = false;
@@ -628,9 +628,14 @@ export default function({ parentElement, setStateValue }) {
       restartBtn.hidden = false;
       startBtn.hidden = true;
       status.textContent = 'Đưa vùng màu của thẻ phủ kín khung tím rồi chụp.';
+
     } catch (err) {
+      console.error('Perilla camera error:', err);
       status.textContent = friendlyError(err);
       idle.style.display = 'flex';
+      guide.hidden = true;
+      shotBtn.hidden = true;
+      restartBtn.hidden = true;
       startBtn.hidden = false;
       startBtn.textContent = 'Thử lại';
     } finally {
@@ -658,10 +663,6 @@ export default function({ parentElement, setStateValue }) {
   restartBtn.addEventListener('click', startCamera);
   shotBtn.addEventListener('click', capture);
 
-  window.addEventListener('resize', () => {
-    if (stream) fitStageToVideo();
-  });
-
   return () => {
     stopCamera();
   };
@@ -669,7 +670,7 @@ export default function({ parentElement, setStateValue }) {
 """
 
 camera_component = st.components.v2.component(
-    name="perilla_tag_camera_v2",
+    name="perilla_tag_camera_v3",
     html=CAMERA_HTML,
     css=CAMERA_CSS,
     js=CAMERA_JS,
@@ -1351,9 +1352,9 @@ if mode == "📷 Chụp thẻ":
     camera_result = camera_component(
         default={"image_data_url": ""},
         on_image_data_url_change=lambda: None,
-        key="perilla_camera_v2",
+        key="perilla_camera_v3",
         width="stretch",
-        height=360,
+        height=350,
     )
 
     camera_data = getattr(camera_result, "image_data_url", "") or ""
